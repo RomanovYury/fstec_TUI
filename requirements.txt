@@ -1,3 +1,4 @@
+cvss==3.6
 et_xmlfile==2.0.0
 numpy==2.4.3
 openpyxl==3.1.5

@@ -8,14 +8,18 @@ import pandas as pd
 import numpy as np
 
 # ---------- Настройки по умолчанию ----------
-TYPE_COEFF = {
-    "Сервер": 1.5,
-    "Рабочая станция": 1.0,
-    "Сетевое устройство": 1.2,
-    "БД": 1.8,
-    "Другое": 1.0
+# типы компонентов
+TYPE_COEFF = {  
+    "Важный компонент": 1.1,
+    "Межсетевой экран": 0.9,
+    "Сетевое устройство":0.9,
+    "Телекомм. оборудование": 0.8,
+    "Сервер": 0.7, 
+    "АРМ" : 0.5,
+    "СХД" : 0.4, 
+    "Другое" : 0.1,
 }
-INTERNET_BONUS = 1.5          # множитель, если есть интернет
+INTERNET_BONUS = 1.1          # множитель, если есть интернет
 USE_LOG_QUANTITY = True       # учитывать количество через log(1+quantity)
 DEFAULT_BASE_SCORE = 5.0      # базовая оценка, если в файле нет колонки с оценкой
 
@@ -114,12 +118,22 @@ def interactive_input(unique_ips):
         })
     return pd.DataFrame(data)
 
-def compute_criticality(row, score_col):
+def compute_criticality(row, score_col, num_of_components):
     """Расчёт критичности для одной строки."""
     base = row[score_col]
-    coeff = TYPE_COEFF.get(row["Тип компонента"], 1.0)
-    internet = INTERNET_BONUS if row["Доступ в интернет"] else 1.0
-    qty = np.log1p(row["Количество в инфраструктуре"]) if USE_LOG_QUANTITY else 1.0
+    coeff = TYPE_COEFF.get(row["Тип компонента"], 0.1)
+    internet = INTERNET_BONUS if row["Доступ в интернет"] else 0.6
+    #qty = np.log1p(row["Количество в инфраструктуре"]) if USE_LOG_QUANTITY else 1.0
+    precent = ((row["Количество в инфраструктуре"])/num_of_components) * 100 
+    if precent < 10: 
+        qty = 0.5
+    elif 10 <= precent < 50: 
+        qty = 0.6
+    elif 50 <= precent < 70: 
+        qty = 0.8 
+    elif precent >= 70: 
+        qty = 1.0 
+
     return base * coeff * internet * qty
 
 def save_report(df, default_name="report.csv"):
@@ -191,10 +205,12 @@ def main():
         score_col_used = "Базовая_оценка"
     else:
         score_col_used = score_col
-
+    
+    num_of_components = len(unique_ips)
+    
     # 6. Расчёт критичности
-    merged["Критичность"] = merged.apply(lambda row: compute_criticality(row, score_col_used), axis=1)
-
+    merged["Критичность"] = merged.apply(lambda row: compute_criticality(row, score_col_used, num_of_components), axis=1)
+    
     # 7. Сортировка по убыванию критичности
     result = merged.sort_values("Критичность", ascending=False)
 
@@ -203,9 +219,9 @@ def main():
     print("ОТЧЁТ (первые 20 строк, отсортировано по критичности)")
     print("="*60)
     print(result.head(20).to_string())
-
+    print(num_of_components)
     # 9. Сохранение
     save_report(result)
-
+    
 if __name__ == "__main__":
     main()

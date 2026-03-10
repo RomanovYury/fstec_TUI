@@ -1,0 +1,211 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+import sys
+import argparse
+import pandas as pd
+import numpy as np
+
+# ---------- Настройки по умолчанию ----------
+TYPE_COEFF = {
+    "Сервер": 1.5,
+    "Рабочая станция": 1.0,
+    "Сетевое устройство": 1.2,
+    "БД": 1.8,
+    "Другое": 1.0
+}
+INTERNET_BONUS = 1.5          # множитель, если есть интернет
+USE_LOG_QUANTITY = True       # учитывать количество через log(1+quantity)
+DEFAULT_BASE_SCORE = 5.0      # базовая оценка, если в файле нет колонки с оценкой
+
+# --------------------------------------------------------------
+
+def load_file(filepath):
+    """Загружает CSV или Excel, возвращает DataFrame."""
+    if not os.path.exists(filepath):
+        print(f"Ошибка: файл '{filepath}' не найден.")
+        sys.exit(1)
+    if filepath.endswith('.csv'):
+        return pd.read_csv(filepath)
+    else:
+        return pd.read_excel(filepath)
+
+def choose_column(df, prompt, default=None):
+    """Предлагает пользователю выбрать колонку из списка."""
+    print(f"\n{prompt}")
+    cols = list(df.columns)
+    for i, col in enumerate(cols, 1):
+        print(f"{i}. {col}")
+    if default and default in cols:
+        def_idx = cols.index(default) + 1
+        print(f"(по умолчанию {default} - нажмите Enter)")
+    else:
+        default = None
+    while True:
+        choice = input("Введите номер или название: ").strip()
+        if not choice and default:
+            return default
+        # Проверка на номер
+        if choice.isdigit():
+            idx = int(choice)
+            if 1 <= idx <= len(cols):
+                return cols[idx-1]
+        # Проверка на название
+        if choice in cols:
+            return choice
+        print("Некорректный ввод, попробуйте снова.")
+
+def get_unique_ips(df, ip_col):
+    """Возвращает список уникальных IP."""
+    return df[ip_col].unique()
+
+def interactive_input(unique_ips):
+    """
+    Для каждого уникального IP запрашивает:
+    - тип компонента (выбор из списка)
+    - наличие интернета (yes/no)
+    - количество в инфраструктуре (целое >=1)
+    Возвращает DataFrame с колонками: IP, Тип компонента, Доступ в интернет, Количество в инфраструктуре.
+    """
+    print("\n--- Ввод атрибутов для уникальных IP ---")
+    data = []
+    type_options = list(TYPE_COEFF.keys())
+    for idx, ip in enumerate(unique_ips, 1):
+        print(f"\nIP {idx} из {len(unique_ips)}: {ip}")
+        # Тип компонента
+        while True:
+            print("Выберите тип компонента:")
+            for i, opt in enumerate(type_options, 1):
+                print(f"  {i}. {opt}")
+            t_choice = input("Введите номер или название: ").strip()
+            if t_choice.isdigit():
+                num = int(t_choice)
+                if 1 <= num <= len(type_options):
+                    t = type_options[num-1]
+                    break
+            elif t_choice in type_options:
+                t = t_choice
+                break
+            print("Некорректный ввод. Попробуйте снова.")
+        # Доступ в интернет
+        while True:
+            internet = input("Есть доступ в интернет? (yes/no): ").strip().lower()
+            if internet in ['yes', 'no']:
+                internet_bool = (internet == 'yes')
+                break
+            print("Введите 'yes' или 'no'.")
+        # Количество
+        while True:
+            qty = input("Количество экземпляров в инфраструктуре: ").strip()
+            try:
+                qty = int(qty)
+                if qty >= 1:
+                    break
+                else:
+                    print("Количество должно быть не меньше 1.")
+            except ValueError:
+                print("Введите целое число.")
+        data.append({
+            "IP": ip,
+            "Тип компонента": t,
+            "Доступ в интернет": internet_bool,
+            "Количество в инфраструктуре": qty
+        })
+    return pd.DataFrame(data)
+
+def compute_criticality(row, score_col):
+    """Расчёт критичности для одной строки."""
+    base = row[score_col]
+    coeff = TYPE_COEFF.get(row["Тип компонента"], 1.0)
+    internet = INTERNET_BONUS if row["Доступ в интернет"] else 1.0
+    qty = np.log1p(row["Количество в инфраструктуре"]) if USE_LOG_QUANTITY else 1.0
+    return base * coeff * internet * qty
+
+def save_report(df, default_name="report.csv"):
+    """Сохраняет отчёт в CSV, спрашивая имя файла."""
+    out_name = input(f"\nИмя файла для сохранения отчёта (по умолчанию {default_name}): ").strip()
+    if not out_name:
+        out_name = default_name
+    if not out_name.endswith('.csv'):
+        out_name += '.csv'
+    df.to_csv(out_name, index=False, encoding='utf-8-sig')
+    print(f"Отчёт сохранён как {out_name}")
+
+def main():
+    parser = argparse.ArgumentParser(description="Оценка критичности уязвимостей (консольная версия)")
+    parser.add_argument("input_file", help="Путь к файлу с уязвимостями (CSV или Excel)")
+    parser.add_argument("--ip-col", help="Название колонки с IP-адресами")
+    parser.add_argument("--score-col", help="Название колонки с базовой оценкой уязвимости")
+    args = parser.parse_args()
+
+    # 1. Загрузка файла
+    print(f"Загрузка файла: {args.input_file}")
+    df = load_file(args.input_file)
+    print(f"Файл загружен. Строк: {len(df)}")
+    print("\nПервые 5 строк:")
+    print(df.head())
+
+    # 2. Выбор колонок, если не указаны
+    if args.ip_col:
+        ip_col = args.ip_col
+        if ip_col not in df.columns:
+            print(f"Ошибка: колонка '{ip_col}' не найдена.")
+            sys.exit(1)
+    else:
+        ip_col = choose_column(df, "Выберите колонку с IP-адресами:")
+
+    if args.score_col:
+        score_col = args.score_col
+        if score_col not in df.columns:
+            print(f"Предупреждение: колонка '{score_col}' не найдена. Будет использовано значение по умолчанию {DEFAULT_BASE_SCORE}.")
+            use_default_score = True
+            score_col = None
+        else:
+            use_default_score = False
+    else:
+        # Спросим, есть ли колонка с оценкой
+        ans = input("\nЕсть ли в файле колонка с базовой оценкой уязвимости (например, CVSS)? (yes/no): ").strip().lower()
+        if ans == 'yes':
+            score_col = choose_column(df, "Выберите колонку с оценкой:")
+            use_default_score = False
+        else:
+            print(f"Будет использована базовая оценка по умолчанию: {DEFAULT_BASE_SCORE}")
+            use_default_score = True
+            score_col = None
+
+    # 3. Извлечение уникальных IP
+    unique_ips = get_unique_ips(df, ip_col)
+    print(f"\nНайдено уникальных IP: {len(unique_ips)}")
+
+    # 4. Ввод атрибутов для каждого IP
+    attrs_df = interactive_input(unique_ips)
+
+    # 5. Объединение исходных данных с атрибутами
+    merged = df.merge(attrs_df, left_on=ip_col, right_on="IP", how="left")
+
+    # Проверяем, что все IP сопоставились (на случай, если в attrs_df есть не все IP – но мы ввели все)
+    # Добавляем колонку с базовой оценкой, если нужно
+    if use_default_score:
+        merged["Базовая_оценка"] = DEFAULT_BASE_SCORE
+        score_col_used = "Базовая_оценка"
+    else:
+        score_col_used = score_col
+
+    # 6. Расчёт критичности
+    merged["Критичность"] = merged.apply(lambda row: compute_criticality(row, score_col_used), axis=1)
+
+    # 7. Сортировка по убыванию критичности
+    result = merged.sort_values("Критичность", ascending=False)
+
+    # 8. Вывод результатов
+    print("\n" + "="*60)
+    print("ОТЧЁТ (первые 20 строк, отсортировано по критичности)")
+    print("="*60)
+    print(result.head(20).to_string())
+
+    # 9. Сохранение
+    save_report(result)
+
+if __name__ == "__main__":
+    main()

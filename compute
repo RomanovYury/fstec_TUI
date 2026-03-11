@@ -6,8 +6,7 @@ import sys
 import argparse
 import pandas as pd
 import numpy as np
-from cvss_cals import calc_cvss 
-
+from calc_cvss import calc_cvss 
 # ---------- Настройки по умолчанию ----------
 # типы компонентов
 TYPE_COEFF = {  
@@ -121,21 +120,22 @@ def interactive_input(unique_ips):
 
 def compute_criticality(row, num_of_components):
     """Расчёт критичности для одной строки."""
-    base = calc_cvss(row["Cvss Вектор"]) # Icvss 
-    coeff = TYPE_COEFF.get(row["Тип компонента"], 0.1) * 0.5 # K * k(0.5)
-    internet = ( INTERNET_BONUS if row["Доступ в интернет"] else 0.6 ) * 0.3 # P *p (0.3) 
+    print(row,num_of_components)
+    #base = row[]
+    #coeff = TYPE_COEFF.get(row["Тип компонента"], 0.1)
+    #internet = INTERNET_BONUS if row["Доступ в интернет"] else 0.6
     #qty = np.log1p(row["Количество в инфраструктуре"]) if USE_LOG_QUANTITY else 1.0
-    precent = (((row["Количество в инфраструктуре"])/num_of_components) * 100)
-    if precent < 10: 
-        qty = 0.5
-    elif 10 <= precent < 50: 
-        qty = 0.6
-    elif 50 <= precent < 70: 
-        qty = 0.8 
-    elif precent >= 70: 
-        qty = 1.0 
-    print(row,calc_cvss(row["Cvss Вектор"]),num_of_components) 
-    return base["score"] * (coeff + qty*0.2 + internet) * (1) 
+    #precent = ((row["Количество в инфраструктуре"])/num_of_components) * 100 
+    #if precent < 10: 
+    #    qty = 0.5
+    #elif 10 <= precent < 50: 
+    #    qty = 0.6
+    #elif 50 <= precent < 70: 
+    #    qty = 0.8 
+    #elif precent >= 70: 
+    #    qty = 1.0 
+
+    #return base * coeff * internet * qty
 
 def save_report(df, default_name="report.csv"):
     """Сохраняет отчёт в CSV, спрашивая имя файла."""
@@ -188,9 +188,8 @@ def main():
             #print(f"Будет использована базовая оценка по умолчанию: {DEFAULT_BASE_SCORE}")
             #use_default_score = True
             #score_col = None
-            print("ERROR")
+            print("Ошибка поиска колонки с вектором атаки") 
             exit(1)
-
     # 3. Извлечение уникальных IP
     unique_ips = get_unique_ips(df, ip_col)
     print(f"\nНайдено уникальных IP: {len(unique_ips)}")
@@ -215,16 +214,16 @@ def main():
     merged["Критичность"] = merged.apply(lambda row: compute_criticality(row, num_of_components), axis=1)
     
     # 7. Сортировка по убыванию критичности
-    result = merged.sort_values("Критичность", ascending=False)
+    #result = merged.sort_values("Критичность", ascending=False)
 
     # 8. Вывод результатов
-    print("\n" + "="*60)
-    print("ОТЧЁТ (первые 20 строк, отсортировано по критичности)")
-    print("="*60)
-    print(result.head(20).to_string())
-    print(num_of_components)
+    #print("\n" + "="*60)
+    #print("ОТЧЁТ (первые 20 строк, отсортировано по критичности)")
+    #print("="*60)
+    #print(result.head(20).to_string())
+    #print(num_of_components)
     # 9. Сохранение
-    save_report(result)
+    #save_report(result)
     
 if __name__ == "__main__":
     main()

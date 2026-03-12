@@ -7,7 +7,7 @@ import argparse
 import pandas as pd
 import numpy as np
 from cvss_cals import calc_cvss 
-
+from bdu_parser import fetch_vulnerability
 # ---------- Настройки по умолчанию ----------
 # типы компонентов
 TYPE_COEFF = {  
@@ -134,7 +134,17 @@ def compute_criticality(row, num_of_components):
         qty = 0.8 
     elif precent >= 70: 
         qty = 1.0 
-    print(row,calc_cvss(row["Cvss Вектор"]),num_of_components) 
+    #print(row,calc_cvss(row["Cvss Вектор"]),num_of_components) 
+    exploit = fetch_vulnerability(row["Fstec Url"])
+    print( exploit.get('vul_incident'))# exploit.get('clv')['clv_name'])
+    iATk = -1 
+    if exploit.get("vul_expl") == 0 : 
+        iATk = 0.1
+    elif exploit.get("vul_expl") == 2 or exploit.get("vul_expl") == 1:
+        iATk = 0.3 
+
+    print(iATk)
+
     return base["score"] * (coeff + qty*0.2 + internet) * (1) 
 
 def save_report(df, default_name="report.csv"):

@@ -254,7 +254,7 @@ def calculate(row):
 
     Icvss = calc_cvss(row["Cvss Вектор"])['score']
 
-    Iinfr = (k * k) + (l * L) + (p * P)  
+    Iinfr = (k * K) + (l * L) + (p * P)  
     Iat = e * E
     Iimp = h * H 
 

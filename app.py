@@ -193,12 +193,16 @@ def calculate(row):
     # ---- расчет P 
 
     # расчет E  
+    ataka = row["Атаки"] 
     if row["ЭКСПЛОИТ"] == 0:
         E = 0.1 
     elif row["ЭКСПЛОИТ"] == 1 : 
-        E = 0.6 ## !!!!!! 
-    elif row["ЭКСПЛОИТ"] == 2:
-        E = 0.6
+        if ataka == 1: 
+            E = 0.6
+        elif ataka == 0 : E = 0.3
+        else: 
+           print(f"\t\tERROR E-ataka: {row["Атаки"]}")
+           exit(1)
     else:
         print(f"\t\tERROR E: {row["ЭКСПЛОИТ"]}")
         exit(1)

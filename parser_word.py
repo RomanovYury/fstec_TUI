@@ -110,7 +110,6 @@ def generate(limit=None):
         doc.add_paragraph(f"Сведения об уязвимости, содержащиеся на сайте Банка данных угроз безопасности информации ФСТЭК России {url}")
         doc.add_paragraph(f"Идентификатор: {f_id}")
         doc.add_paragraph(f"Описание уязвимости: {desc_clean}")
-        doc.add_paragraph("Эксплуатация уязвимости может позволить нарушителю, действующему удаленно, обойти существующие ограничения безопасности.")
         doc.add_paragraph(f"Базовый вектор уязвимости: по CVSS 3.1: {get_v(row, COL['vector'])}")
         doc.add_paragraph(f"Уровень опасности уязвимости: {get_v(row, COL['severity'])} уровень опасности (базовая оценка CVSS 3.1 составляет {get_v(row, COL['icvss'])})")
         doc.add_paragraph(f"Наличие эксплойта: {expl_text}.")

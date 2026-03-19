@@ -52,6 +52,7 @@ def add_centered_formula(doc, text):
 def generate(limit=None):
     input_file = 'data.csv' # или .xlsx
     output_file = 'Expert_Report_Test.docx'
+    output_mini = 'Expert_Report_Mini.docx'
 
     if not os.path.exists(input_file):
         print(f"Файл {input_file} не найден!")
@@ -59,6 +60,7 @@ def generate(limit=None):
 
     print("Читаю файл данных...")
     df = load_data(input_file)
+
    
     # ПРИМЕНЯЕМ ЛИМИТ, ЕСЛИ ОН ЗАДАН
     if limit:
@@ -66,6 +68,7 @@ def generate(limit=None):
         df = df.head(limit)
 
     doc = Document()
+    doc_mini = Document()
    
     # Настройки стиля
     style = doc.styles['Normal']
@@ -76,6 +79,16 @@ def generate(limit=None):
     style.paragraph_format.space_before = Pt(0)
     style.paragraph_format.space_after = Pt(0)
     style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY 
+
+
+    style = doc_mini.styles['Normal']
+    style.font.name = 'Times New Roman'
+    style.font.size = Pt(14)
+    style.paragraph_format.first_line_indent = Cm(1.25)
+    style.paragraph_format.line_spacing = 1.5
+    style.paragraph_format.space_before = Pt(0)
+    style.paragraph_format.space_after = Pt(0)
+    style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Прогресс", unit=" стр."):
         f_id = get_v(row, COL['f_id'])
@@ -94,6 +107,9 @@ def generate(limit=None):
         else: iat_desc = "Отсутствуют сведения об эксплуатации в реальных атаках"
 
         net_val = str(row.iloc[COL['p_flag']-1]).strip()
+
+
+
         net_text = "доступно" if net_val == "1" else "недоступно"
 
         try:
@@ -164,12 +180,24 @@ def generate(limit=None):
         doc.add_paragraph("3. Расчет уровня критичности уязвимости программных, программно-аппаратных средств в информационной системе V осуществляется с использованием данных, полученных в предыдущих пунктах, по формуле:")
         add_centered_formula(doc, f"V =Icvss×Iinfr×(Iat+Iimp)={get_v(row, COL['icvss'])}×{get_v(row, COL['k_res'])}×({get_v(row, COL['iat_val_e'])}+{get_v(row, COL['iimp_res'])}) ≈ {v_total_val}")
         doc.add_paragraph(f"Таким образом, уровню критичности указанной уязвимости для имеющейся информационной системы присваивается значение «{verdict_word}» ({verdict_cond})")
+        
+        # --- МИНИ-ОТЧЕТ (ТОЛЬКО РАЗДЕЛ 3) ---
+
+        p_mini = doc_mini.add_paragraph()
+        run_mini = p_mini.add_run(f"Идентификатор: {f_id}")
+        run_mini.bold = True
+
+        add_centered_formula(doc_mini, f"V =Icvss×Iinfr×(Iat+Iimp)={get_v(row, COL['icvss'])}×{get_v(row, COL['k_res'])}×({get_v(row, COL['iat_val_e'])}+{get_v(row, COL['iimp_res'])}) ≈ {v_total_val}")
+        doc_mini.add_paragraph(f"Уровень критичности указанной уязвимости для имеющейся информационной системы присваивается значение «{verdict_word}» ({verdict_cond})")
 
         if index < len(df) - 1:
             doc.add_page_break()
+            #doc_mini.add_page_break()
 
     doc.save(output_file)
-    print(f"\n✅ Отчет сохранен: {output_file}")
+    doc_mini.save(output_mini)
+    print(f"\nОтчеты сохранены: {output_file} и {output_mini}")
+
 
 if __name__ == "__main__":
     # Настройка парсера аргументов

@@ -108,9 +108,9 @@ def generate(limit=None):
 
         
         cvss_type = "CVSS 3.1"
-        if "CVSS:4.0" in get_v(row, COL['icvss']): 
+        if "CVSS:4.0" in get_v(row, COL['vector']): 
             cvss_type = "CVSS 4.0"
-        elif "CVSS:3.0" in get_v(row, COL['icvss']) or "CVSS:3.1" in get_v(row, COL['icvss']):
+        elif "CVSS:3.0" in get_v(row, COL['vector']) or "CVSS:3.1" in get_v(row, COL['vector']):
             cvss_type = "CVSS 3.1"
         else: 
             cvss_type = "CVSS.2.0"

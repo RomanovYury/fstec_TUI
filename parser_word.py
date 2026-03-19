@@ -105,6 +105,14 @@ def generate(limit=None):
         elif l_float >= 0.6: comp_text = "10-50% компонентов от общего числа компонентов в информационной системе."
         else: comp_text = "Менее 10% компонентов от общего числа компонентов в информационной системе."
 
+
+         cvss_type = "CVSS 3.1"
+        if "CVSS:4.0" in get_v(row, COL['icvss']): 
+            cvss_type = "CVSS 4.0"
+        elif "Au:" in get_v(row, COL['icvss']):
+            cvss_type = "CVSS 2.0"
+
+        
         desc_clean = get_v(row, COL['desc'])
         print(get_v(row,COL['desc']))
         url = get_v(row,COL['url']).replace(',','.')
@@ -113,18 +121,14 @@ def generate(limit=None):
         doc.add_paragraph(f"Сведения об уязвимости, содержащиеся на сайте Банка данных угроз безопасности информации ФСТЭК России {url}")
         doc.add_paragraph(f"Идентификатор: {f_id}")
         doc.add_paragraph(f"Описание уязвимости: {desc_clean}")
-        doc.add_paragraph(f"Базовый вектор уязвимости: по CVSS 3.1: {get_v(row, COL['vector'])}")
+        doc.add_paragraph(f"Базовый вектор уязвимости: по {cvss_type}: {get_v(row, COL['vector'])}")
         doc.add_paragraph(f"Уровень опасности уязвимости: {get_v(row, COL['severity'])} уровень опасности (базовая оценка CVSS 3.1 составляет {get_v(row, COL['icvss'])})")
         doc.add_paragraph(f"Наличие эксплойта: {expl_text}.")
         doc.add_paragraph(f"Эксплуатация в реальных атаках: {get_v(row, COL['attacks'])}")
 
         # Раздел 1.1 - 1.3
-        cvss_type = "CVSS 3.1"
-        if "CVSS:4.0" in get_v(row, COL['icvss']): 
-            cvss_type = "CVSS 4.0"
-        elif "Au:" in get_v(row, COL['icvss']):
-            cvss_type = "CVSS 2.0"
-        doc.add_paragraph(f"1.1 Исходя из уровня опасности уязвимости {f_id} по CVSS 3.1, показателю Icvss присваивается следующее значение:")
+       
+        doc.add_paragraph(f"1.1 Исходя из уровня опасности уязвимости {f_id} по {cvss_type}, показателю Icvss присваивается следующее значение:")
         add_centered_formula(doc, f"Icvss={get_v(row, COL['icvss'])}")
 
         doc.add_paragraph(f"1.2 Исходя из описания уязвимости, показателю последствий воздействий, которым подвергается информационная система при эксплуатации уязвимости присваивается значение «{get_v(row, COL['h_desc'])}» (H={get_v(row, COL['h_val'])}):")

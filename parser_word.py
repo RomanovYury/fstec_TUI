@@ -75,7 +75,7 @@ def generate(limit=None):
     style.paragraph_format.line_spacing = 1.5
     style.paragraph_format.space_before = Pt(0)
     style.paragraph_format.space_after = Pt(0)
-    
+    style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY 
 
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Прогресс", unit=" стр."):
         f_id = get_v(row, COL['f_id'])
@@ -109,7 +109,7 @@ def generate(limit=None):
         print(get_v(row,COL['desc']))
         url = get_v(row,COL['url']).replace(',','.')
         # Построчная сборка (Раздел 1)
-        doc.add_paragraph("1. Исходные данные об уязвимости:").alignment.WD_ALIGN_PARAGRAPH.CENTER
+        doc.add_paragraph("1. Исходные данные об уязвимости:")
         doc.add_paragraph(f"Сведения об уязвимости, содержащиеся на сайте Банка данных угроз безопасности информации ФСТЭК России {url}")
         doc.add_paragraph(f"Идентификатор: {f_id}")
         doc.add_paragraph(f"Описание уязвимости: {desc_clean}")
@@ -119,6 +119,11 @@ def generate(limit=None):
         doc.add_paragraph(f"Эксплуатация в реальных атаках: {get_v(row, COL['attacks'])}")
 
         # Раздел 1.1 - 1.3
+        cvss_type = "CVSS 3.1"
+        if "CVSS:4.0" in get_v(row, COL['icvss']): 
+            cvss_type = "CVSS 4.0"
+        elif "Au:" in get_v(row, COL['icvss']):
+            cvss_type = "CVSS 2.0"
         doc.add_paragraph(f"1.1 Исходя из уровня опасности уязвимости {f_id} по CVSS 3.1, показателю Icvss присваивается следующее значение:")
         add_centered_formula(doc, f"Icvss={get_v(row, COL['icvss'])}")
 

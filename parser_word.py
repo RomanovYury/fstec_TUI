@@ -106,7 +106,7 @@ def generate(limit=None):
         else: comp_text = "Менее 10% компонентов от общего числа компонентов в информационной системе."
 
 
-         cvss_type = "CVSS 3.1"
+        cvss_type = "CVSS 3.1"
         if "CVSS:4.0" in get_v(row, COL['icvss']): 
             cvss_type = "CVSS 4.0"
         elif "Au:" in get_v(row, COL['icvss']):

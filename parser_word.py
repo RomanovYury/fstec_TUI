@@ -110,8 +110,11 @@ def generate(limit=None):
         cvss_type = "CVSS 3.1"
         if "CVSS:4.0" in get_v(row, COL['icvss']): 
             cvss_type = "CVSS 4.0"
-        elif "Au:" in get_v(row, COL['icvss']):
-            cvss_type = "CVSS 2.0"
+        elif "CVSS:3.0" in get_v(row, COL['icvss']) or "CVSS:3.1" in get_v(row, COL['icvss']):
+            cvss_type = "CVSS 3.1"
+        else: 
+            cvss_type = "CVSS.2.0"
+            
         print(cvss_type)
         
         desc_clean = get_v(row, COL['desc'])
@@ -123,7 +126,7 @@ def generate(limit=None):
         doc.add_paragraph(f"Идентификатор: {f_id}")
         doc.add_paragraph(f"Описание уязвимости: {desc_clean}")
         doc.add_paragraph(f"Базовый вектор уязвимости: по {cvss_type}: {get_v(row, COL['vector'])}")
-        doc.add_paragraph(f"Уровень опасности уязвимости: {get_v(row, COL['severity'])} уровень опасности (базовая оценка CVSS 3.1 составляет {get_v(row, COL['icvss'])})")
+        doc.add_paragraph(f"Уровень опасности уязвимости: {get_v(row, COL['severity'])} уровень опасности (базовая оценка {cvss_type} составляет {get_v(row, COL['icvss'])})")
         doc.add_paragraph(f"Наличие эксплойта: {expl_text}.")
         doc.add_paragraph(f"Эксплуатация в реальных атаках: {get_v(row, COL['attacks'])}")
 

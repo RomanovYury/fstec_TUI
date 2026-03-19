@@ -130,16 +130,19 @@ def generate(limit=None):
         doc.add_paragraph("2.1 Сведения о компонентах информационной системы определены в органе (организации) по результатам проведенной инвентаризации.")
         doc.add_paragraph("Исходя из данных инвентаризации определено:")
         doc.add_paragraph(f"Тип компонента информационной системы, подверженного уязвимости: {get_v(row, COL['type_comp'])}")
-        add_centered_formula(doc, f"K=k ×K={get_v(row, COL['k_k1'])}×{get_v(row, COL['k_k2'])}={get_v(row, COL['k_res'])}")
+        k_res = get_v(row, COL['k_k1']) * get_v(row, COL['k_k2'])
+        add_centered_formula(doc, f"K=k ×K={get_v(row, COL['k_k1'])}×{get_v(row, COL['k_k2'])}={k_res}")
        
         doc.add_paragraph(f"Количество уязвимых компонентов информационной системы: {comp_text}")
-        add_centered_formula(doc, f"L=l×L={get_v(row, COL['l_l1'])}×{get_v(row, COL['l_l2'])}={get_v(row, COL['l_res'])}")
+        l_res = get_v(row, COL['l_l1']) * get_v(row, COL['l_l2'])
+        add_centered_formula(doc, f"L=l×L={get_v(row, COL['l_l1'])}×{get_v(row, COL['l_l2'])}={l_res}")
        
         doc.add_paragraph(f"Влияние на эффективность защиты периметра информационной системы: уязвимое программное, программно-аппаратное средство {net_text} из сети «Интернет».")
-        add_centered_formula(doc, f"P=p×P={get_v(row, COL['p_p1'])}×{get_v(row, COL['p_p2'])}={get_v(row, COL['p_res'])}")
+        p_res = get_v(row, COL['p_p1']) * get_v(row, COL['p_p2'])
+        add_centered_formula(doc, f"P=p×P={get_v(row, COL['p_p1'])}×{get_v(row, COL['p_p2'])}={p_res}")
 
         doc.add_paragraph("Таким образом, определяется показатель влияния уязвимости на функционирование информационной системы Iinfr.")
-        add_centered_formula(doc, f"Iinfr=k×K+l×L+p×P={get_v(row, COL['k_res'])}+{get_v(row, COL['l_res'])}+{get_v(row, COL['p_res'])}={get_v(row, COL['k_res'])}")
+        add_centered_formula(doc, f"Iinfr=k×K+l×L+p×P={k_res}+{l_res}+{p_res}={get_v(row, COL['k_res'])}")
 
         # Раздел 3
         doc.add_paragraph("3. Расчет уровня критичности уязвимости программных, программно-аппаратных средств в информационной системе V осуществляется с использованием данных, полученных в предыдущих пунктах, по формуле:")

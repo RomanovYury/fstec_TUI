@@ -45,7 +45,7 @@ def get_verdict(v_str):
 
 def add_centered_formula(doc, text):
     p = doc.add_paragraph(text)
-    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.first_line_indent = 0
     return p
 
@@ -109,7 +109,7 @@ def generate(limit=None):
         print(get_v(row,COL['desc']))
         url = get_v(row,COL['url']).replace(',','.')
         # Построчная сборка (Раздел 1)
-        doc.add_paragraph("1. Исходные данные об уязвимости:")
+        doc.add_paragraph("1. Исходные данные об уязвимости:").alignment.WD_ALIGN_PARAGRAPH.CENTER
         doc.add_paragraph(f"Сведения об уязвимости, содержащиеся на сайте Банка данных угроз безопасности информации ФСТЭК России {url}")
         doc.add_paragraph(f"Идентификатор: {f_id}")
         doc.add_paragraph(f"Описание уязвимости: {desc_clean}")

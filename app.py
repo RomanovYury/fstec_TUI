@@ -171,9 +171,9 @@ def calculate(row):
     proc = row["Процент"]
     if proc > 70: 
         L = 1.0 
-    elif 50 < proc <= 70:
+    elif 50 <= proc <= 70:
         L = 0.8
-    elif 10 <= proc <= 50: 
+    elif 10 <= proc < 50: 
         L = 0.6 
     elif proc < 10:
         L = 0.5

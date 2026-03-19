@@ -45,7 +45,7 @@ def get_verdict(v_str):
 
 def add_centered_formula(doc, text):
     p = doc.add_paragraph(text)
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.first_line_indent = 0
     return p
 
@@ -73,6 +73,9 @@ def generate(limit=None):
     style.font.size = Pt(14)
     style.paragraph_format.first_line_indent = Cm(1.25)
     style.paragraph_format.line_spacing = 1.5
+    style.paragraph_format.space_before = Pt(0)
+    style.paragraph_format.space_after = Pt(0)
+    
 
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Прогресс", unit=" стр."):
         f_id = get_v(row, COL['f_id'])

@@ -122,16 +122,48 @@ def interactive_input(unique_ips):
                 if len(data) > 0 and count !=0 : 
                     while True: 
                         choice = input("Есть ли выход в интернет у хостов для данного компонента? [y/n]").strip()
+
                         if choice == "y":
                             choice_2 = input("Все ли хосты имеют выход в интернет? [y/n]")
                             if choice_2 == "y": 
                                 for i in range(len(data)):
                                     if data[i]["Тип"] == typ: 
                                         data[i]["Интернет"] = 1
-            
-                            break
-                            if choice_2 == "n": 
-                                # потом допишу 
+                                break
+                            elif choice_2 == "n":
+                                idx_list = []
+                                for i in range(len(data)):
+                                    if data[i]["Тип"] == typ:
+                                        idx_list.append(data[i]["IP"])
+                                no_internet_list = []
+                                while True:
+                                    print(f"Укажит хосты, которые не имеют выхода в интернет: \n")
+                                    for i,opt in enumerate(idx_list,1):
+                                        print(f"{i}. {opt}")
+                                    print(f"Указанные хосты: \n") 
+                                    for opt in no_internet_list:
+                                        print(opt)
+                                    choise_num = input("Укажите номер хоста: ")
+                                    if choise_num.isdigit():
+                                        choise_num = int(choise_num)
+                                        if 1<=choise_num<=(len(idx_list)):
+                                            no_internet_list.append(idx_list[choise_num-1])
+                                            idx_list.pop(choise_num-1)
+                                    elif choise_num == "-":
+                                        for i in range(len(data)):
+                                            if data[i]["Тип"] == typ:
+                                                for y in range(len(idx_list)):
+                                                    if data[i]["IP"] == idx_list[y]:
+                                                        data[i]["Интернет"] = 1
+                                                        print(f"{idx_list[y]}: Интернет включен")
+                                                        idx_list.pop(y)
+                                                        break
+                                                for y in range(len(no_internet_list)):
+                                                    if data[i]["IP"] == no_internet_list[y]:
+                                                        data[i]["Интернет"] = 0
+                                                        print(f"{no_internet_list[y]}: Интернет выключен")
+                                                        break
+                                        break
                                 break
                         elif choice == "n":
                             for i in range(len(data)): 
@@ -174,7 +206,7 @@ def interactive_input(unique_ips):
          #---- проверка на число
          #----Ввод хостов по типу 
 
-        #print(f"data : {data} \n ip_list: {ip_list}")    
+        #print(f"data : {data}\n")    
     return data 
 
 def calculate(row,colums_list): 

@@ -27,11 +27,6 @@ def calc_cvss(vector):
                 
     else: 
         return {"score" : -1}
-    #print(c.scores()[0])
-    #print(c.severities()[0])
     
     return {"score" : c.scores()[0],"lvl" : c.severities()[0],}
-    
-
-
-
+   

@@ -621,6 +621,8 @@ def calculate(row):
     # ---- расчет H 
 
     Icvss = calc_cvss(row["Cvss Вектор"])['score']
+    if Icvss == -1: 
+        print(f"\t\tERROR Icvss: {row["Cvss Вектор"]}")
 
     Iinfr = (k * K) + (l * L) + (p * P)  
     Iat = e * E
@@ -690,7 +692,7 @@ def main():
     # for i in data: 
     #     print (f'{i}\n\n')
 
-    print(data)
+    
 
     #Объединение исходных данных с атрибутами
     merged = df.merge(pd.DataFrame(data), left_on=ip_col, right_on="IP", how="left")

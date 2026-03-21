@@ -49,11 +49,11 @@ def add_centered_formula(doc, text):
     p.paragraph_format.first_line_indent = 0
     return p
 
-def generate(limit=None):
-    input_file = 'data.csv' # или .xlsx
+def generate(limit=None,input_file="report.cvs"):
     output_file = 'Expert_Report_Test.docx'
     output_mini = 'Expert_Report_Mini.docx'
 
+    
     if not os.path.exists(input_file):
         print(f"Файл {input_file} не найден!")
         return
@@ -202,9 +202,10 @@ def generate(limit=None):
 if __name__ == "__main__":
     # Настройка парсера аргументов
     parser = argparse.ArgumentParser(description="Генератор отчетов по уязвимостям")
+    parser.add_argument("input_file", help="Путь к файлу для отчета (CSV)")
     parser.add_argument("--limit", type=int, help="Ограничить количество обрабатываемых строк для теста")
    
     args = parser.parse_args()
    
-    generate(limit=args.limit)
+    generate(limit=args.limit,input_file=args.input_file)
 
